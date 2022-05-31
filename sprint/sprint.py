@@ -51,7 +51,7 @@ def showLocalMaxMin(vector,time):
 
 graphic = Graphic()
 
-file = pd.read_excel('datos/brutos1.xlsx',sheet_name = 'Center of Mass'); #May be a EXCEL
+file = pd.read_excel('datos/brutos1.xlsx',sheet_name = 'Center of Mass') #May be a EXCEL
 
 file.columns = ['Frame', 'CoM pos x', 'CoM pos y', 'CoM pos z', 'CoM vel x',
        'CoM vel y', 'CoM vel z', 'CoM acc x', 'CoM acc y', 'CoM acc z',
@@ -63,21 +63,25 @@ res_value = file['Res']
 x_value = x_value[:int(len(x_value)/2)]
 y_value = y_value[:int(len(y_value)/2)]
 
-time = np.arange(0, len(y_value), 1);
-print(len(x_value))
+time = np.arange(0, len(y_value), 1)
 
 i=0
 while i < len(x_value):
     graphic.res.append(np.sqrt(x_value[i]**2+y_value[i]**2))
     i+=1
 
-print(len(time))
-print(len(graphic.res))
 mean = np.mean(graphic.res)
-print("mean:" + str(mean))
+#print("mean:" + str(mean))
 
 weight = 1/(graphic.res - mean)
+plot_graphic = savgol_filter(graphic.res, 3000, 3)
 
+localMaximums = argrelextrema(np.array(plot_graphic), np.greater)
+
+i=0
+while i < len(localMaximums):
+    plot.scatter(localMaximums[i],plot_graphic[localMaximums[i]])
+    i+=1
 # t,c,k = interpolate.splrep(time, graphic.res, k=3)
 # print(str(t) + str(c) + str(k))
 # spline = interpolate.BSpline(t, c, k, extrapolate=True)
@@ -97,7 +101,7 @@ weight = 1/(graphic.res - mean)
 
 # print("global maximus" + str(global_maximums))
 
-plot.plot(time, graphic.res, color="lightblue")
+plot.plot(time, plot_graphic, color="lightblue")
 # Give a title for the sine wave plot
 plot.title('Sine wave')
 # # Give x axis label for the sine wave plot
