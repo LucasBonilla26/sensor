@@ -14,6 +14,7 @@ class Graphics():
         self.plot_graphic = []
         self.low_filter_data = []
         self.segment1 = []
+        self.frame = []
         
     def load_file(self, file_path, sheet_name, n_values=-1):
         print("Reading file...")
@@ -26,6 +27,7 @@ class Graphics():
         print("Loading columns...")
         x_value = file['CoM vel x'][:n_values]
         y_value = file['CoM vel y'][:n_values]
+        self.frame = file['Frame'][:n_values]
         
         print("Calculating speed...")
         self.data = [np.sqrt(x**2 + y**2) for x,y in list(zip(x_value, y_value))]
@@ -38,11 +40,14 @@ class Graphics():
 
     def show(self):
         t = np.arange(0, len(self.data), 1)
-        plt.figure(1)
-        plt.plot(t, self.data, label='originals')
-        plt.figure(2)
-        plt.plot(t, self.segment1, marker='.', label='n_knots = 6')
-        #plt.plot(t, self.low_filter_data, marker='.', label='n_knots = 6')             
+        fig1, ax1 = plt.subplots()
+        fig2, ax2 = plt.subplots()
+        fig3, ax3 = plt.subplots()
+        # plt.figure(1)
+        ax2.plot(t, self.data, label='originals')
+        # plt.figure(2)
+        ax1.plot(np.arange(0,len(self.segment1),1), self.segment1)
+        ax3.plot(np.arange(0,len(self.plot_graphic),1), self.plot_graphic)             
         plt.show()
     
     def cubic_spline_smooth(self):
@@ -52,7 +57,7 @@ class Graphics():
         self.y_est_6 = model_6.predict(t)
     
     def salvog_filter(self):
-        self.plot_graphic = savgol_filter(self.data, 350, 3)
+        self.plot_graphic = savgol_filter(self.segment1, 350, 3)
         
     def low_filter(self):
         b,a = signal.butter(4,24/(240/2),'low',analog = False)
@@ -61,30 +66,39 @@ class Graphics():
     def segment(self):
         n = 15
         umbral = 0.31
-        max = [2730]
-        
+        max = [14820]
+        aux = []
+        frame_aux = []
         for x in max:
             i = x
-            for y in self.data[i:]:
-                if y > umbral:
-                    self.segment1.append(y)
+            while i > 0:
+                if self.data[i] > umbral:
+                    aux.append(self.data[i])
+                    frame_aux.append(self.frame[i])
                 else:
                     break
-                
-            for y in self.data[:i]:
-                if y > umbral:
-                    self.segment1.append(y)
+                i-=1
+
+            self.segment1 = np.flip(aux)
+            frame_aux = np.flip(frame_aux)
+
+            i = x    
+            while i < len(self.data):
+                if self.data[i] > umbral:
+                    self.segment1 = np.append(self.segment1,self.data[i])
                 else:
                     break
+                i+=1
         
         return self.segment1
             
 if __name__ == "__main__":
     graphic = Graphics()
-    graphic.load_file("datos/brutos1.xlsx","Center of Mass",3500)
+    graphic.load_file("datos/brutos1.xlsx","Center of Mass",-1)
     #graphic.umbralize(2.0)
     #graphic.cubic_spline_smooth()
     #graphic.low_filter()
-    #graphic.salvog_filter()
+    
     print(graphic.segment())
+    graphic.salvog_filter()
     graphic.show()
