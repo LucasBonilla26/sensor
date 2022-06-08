@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import cubic_spline
+from scipy import signal
+from scipy.signal import find_peaks,savgol_filter
 
 class Graphics():
 
@@ -9,8 +11,10 @@ class Graphics():
         self.data = []
         self.umbralized_data = []
         self.y_est_6 = []
-        self.y_est_15 = []
-    
+        self.plot_graphic = []
+        self.low_filter_data = []
+        self.segment1 = []
+        
     def load_file(self, file_path, sheet_name, n_values=-1):
         print("Reading file...")
         file = pd.read_excel(file_path, sheet_name) #May be a EXCEL
@@ -34,21 +38,53 @@ class Graphics():
 
     def show(self):
         t = np.arange(0, len(self.data), 1)
-        plt.figure()
-        plt.plot(t, self.data, ls='', marker='.', label='originals')
-        plt.plot(t, self.y_est_6, marker='.', label='n_knots = 6')        
+        plt.figure(1)
+        plt.plot(t, self.data, label='originals')
+        plt.figure(2)
+        plt.plot(t, self.segment1, marker='.', label='n_knots = 6')
+        #plt.plot(t, self.low_filter_data, marker='.', label='n_knots = 6')             
         plt.show()
     
     def cubic_spline_smooth(self):
         # The number of knots can be used to control the amount of smoothness
         t = np.arange(0, len(self.data), 1)
-        model_6 = cubic_spline.get_natural_cubic_spline_model(t, self.data, minval=min(t), maxval=max(t), n_knots=17000)
+        model_6 = cubic_spline.get_natural_cubic_spline_model(t, self.data, minval=min(t), maxval=max(t), n_knots=2000)
         self.y_est_6 = model_6.predict(t)
     
-         
+    def salvog_filter(self):
+        self.plot_graphic = savgol_filter(self.data, 350, 3)
+        
+    def low_filter(self):
+        b,a = signal.butter(4,24/(240/2),'low',analog = False)
+        self.low_filter_data = signal.filtfilt(b,a, self.data)
+        
+    def segment(self):
+        n = 15
+        umbral = 0.31
+        max = [2730]
+        
+        for x in max:
+            i = x
+            for y in self.data[i:]:
+                if y > umbral:
+                    self.segment1.append(y)
+                else:
+                    break
+                
+            for y in self.data[:i]:
+                if y > umbral:
+                    self.segment1.append(y)
+                else:
+                    break
+        
+        return self.segment1
+            
 if __name__ == "__main__":
     graphic = Graphics()
-    graphic.load_file("datos/brutos1.xlsx","Center of Mass",17000)
+    graphic.load_file("datos/brutos1.xlsx","Center of Mass",3500)
     #graphic.umbralize(2.0)
-    graphic.cubic_spline_smooth()
+    #graphic.cubic_spline_smooth()
+    #graphic.low_filter()
+    #graphic.salvog_filter()
+    print(graphic.segment())
     graphic.show()

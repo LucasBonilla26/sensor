@@ -13,7 +13,7 @@ def read_data():
     """
     Este es el docstring de la función
     """
-    file = pd.read_csv('datos/pablodepie30_noparada.csv'); #May be a EXCEL
+    file = pd.read_csv('../datos/pablodepie30_noparada.csv'); #May be a EXCEL
     return file
 
 def getIntegration(acceleration):
