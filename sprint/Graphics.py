@@ -23,12 +23,14 @@ class Graphics():
         self.segment6 = []
 
         self.frame = []
-        self.excel_file = 'datos/prueba.xlsx'
+        #r'L:\.shortcut-targets-by-id\1Hs9L2qhd3LpjsVWp9cF_HjklAV_TVHBE\02_INVESTIGACIONES\Futbol\Territorio Gaming-Sta Teresa\04_Registros\Base\Loba.xlsx'
+        self.excel_file = r'L:\.shortcut-targets-by-id\1Hs9L2qhd3LpjsVWp9cF_HjklAV_TVHBE\02_INVESTIGACIONES\Futbol\Territorio Gaming-Sta Teresa\04_Registros\Base\MJ.xlsx'
 
         
     def load_file(self, file_path, sheet_name, n_values=-1):
         print("Reading file...")
-        file = pd.read_excel(file_path, sheet_name) #May be a EXCEL
+        
+        file = pd.read_excel(file_path, sheet_name) #Excel
 
         file.columns = ['Frame', 'CoM pos x', 'CoM pos y', 'CoM pos z', 'CoM vel x',
             'CoM vel y', 'CoM vel z', 'CoM acc x', 'CoM acc y', 'CoM acc z',
@@ -77,7 +79,8 @@ class Graphics():
         n = 15
         workbook = xlsxwriter.Workbook(self.excel_file)
         umbral = 0.31
-        max = [2403,14400,37300,44000,51400]
+        #máximos [2733,14822,37474,43953,51529,55242,64208,69019,81255,85009,105422,135371,140114,144357,147569]
+        max = [2733,14822,37474,43953,51529,55242,64208,69019,81255,85009,105422,135371,140114,144357,147569]
         
         for x in max:
             aux = []
@@ -91,10 +94,12 @@ class Graphics():
                     break
                 i-=1
 
+            
             self.segment1 = np.flip(aux)
             frame_aux = np.flip(frame_aux)
 
-            i = x    
+            i = x
+            #i+=1 
             while i < len(self.data):
                 if self.data[i] > umbral:
                     self.segment1 = np.append(self.segment1,self.data[i])
@@ -103,12 +108,12 @@ class Graphics():
                     break
                 i+=1
         
-            print(len(self.segment1))
-            print(len(frame_aux))
+            # print(len(self.segment1))
+            # print(len(frame_aux))
             
             row=0
             worksheet = workbook.add_worksheet()
-
+            
             for x in range(len(self.segment1)):
                 worksheet.write(row,1,self.segment1[x])
                 worksheet.write(row,0,frame_aux[x])
@@ -120,11 +125,14 @@ class Graphics():
             
 if __name__ == "__main__":
     graphic = Graphics()
-    graphic.load_file("datos/brutos1.xlsx","Center of Mass",170000)
+    #graphic.load_file("datos/brutos1.xlsx","Center of Mass") No poner nada para coger la gráfica entera
+    #El último parámetro espécifica hasta que frame se quiere cargar de los datos, si se quiere cargar la gráfica entera quitar el valor
+    graphic.load_file("datos/brutos1.xlsx","Center of Mass",170000) 
     #graphic.umbralize(2.0)
     #graphic.cubic_spline_smooth()
     #graphic.low_filter()
     #graphic.show()
-    print(graphic.segment())
+    graphic.segment()
+    print("He terminado!")
     #graphic.salvog_filter()
-    graphic.show()
+    #graphic.show()
