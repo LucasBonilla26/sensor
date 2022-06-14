@@ -1,6 +1,4 @@
 from scipy import signal
-from scipy import integrate
-from webbrowser import get
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -13,7 +11,7 @@ def read_data():
     """
     Este es el docstring de la función
     """
-    file = pd.read_csv('../datos/pablodepie30_noparada.csv'); #May be a EXCEL
+    file = pd.read_csv('../datos/desp25cmXSENS.csv'); #May be a EXCEL
     return file
 
 def getIntegration(acceleration):
@@ -36,8 +34,8 @@ def getIntegrationV2(vector):
     return velocity
 
 def cumtrapz_example(x):
-    dtime = 0.06
-    dtVel = x * dtime;
+    dtime = 0.01
+    dtVel = x * dtime
     return np.cumsum([dtVel])
 
 file = read_data()
@@ -60,7 +58,10 @@ while i < len(y):
 plt.plot(y)
 # velocity = cumtrapz_example(y)
 # position = cumtrapz_example(velocity)
-velocity = integrate.cumtrapz(y,dx=1/60,initial=0);
+
+velocity = cumtrapz_example(y)
+position = cumtrapz_example(velocity)
+
 
 i=0
 while i < len(velocity):

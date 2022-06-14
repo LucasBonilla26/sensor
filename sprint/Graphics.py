@@ -1,7 +1,9 @@
 import numpy as np
+from openpyxl import Workbook
 import pandas as pd
 import matplotlib.pyplot as plt
 import cubic_spline
+import xlsxwriter
 from scipy import signal
 from scipy.signal import find_peaks,savgol_filter
 
@@ -14,7 +16,15 @@ class Graphics():
         self.plot_graphic = []
         self.low_filter_data = []
         self.segment1 = []
+        self.segment2 = []
+        self.segment3 = []
+        self.segment4 = []
+        self.segment5 = []
+        self.segment6 = []
+
         self.frame = []
+        self.excel_file = 'datos/prueba.xlsx'
+
         
     def load_file(self, file_path, sheet_name, n_values=-1):
         print("Reading file...")
@@ -46,8 +56,8 @@ class Graphics():
         # plt.figure(1)
         ax2.plot(t, self.data, label='originals')
         # plt.figure(2)
-        ax1.plot(np.arange(0,len(self.segment1),1), self.segment1)
-        ax3.plot(np.arange(0,len(self.plot_graphic),1), self.plot_graphic)             
+        #ax1.plot(np.arange(0,len(self.segment1),1), self.segment1)
+        #ax3.plot(np.arange(0,len(self.plot_graphic),1), self.plot_graphic)             
         plt.show()
     
     def cubic_spline_smooth(self):
@@ -65,16 +75,18 @@ class Graphics():
         
     def segment(self):
         n = 15
+        workbook = xlsxwriter.Workbook(self.excel_file)
         umbral = 0.31
-        max = [14820]
-        aux = []
-        frame_aux = []
+        max = [2403,14400,37300,44000,51400]
+        
         for x in max:
+            aux = []
+            frame_aux = []
             i = x
             while i > 0:
                 if self.data[i] > umbral:
                     aux.append(self.data[i])
-                    frame_aux.append(self.frame[i])
+                    frame_aux = np.append(frame_aux,self.frame[i])
                 else:
                     break
                 i-=1
@@ -86,19 +98,33 @@ class Graphics():
             while i < len(self.data):
                 if self.data[i] > umbral:
                     self.segment1 = np.append(self.segment1,self.data[i])
+                    frame_aux = np.append(frame_aux,self.frame[i])
                 else:
                     break
                 i+=1
         
+            print(len(self.segment1))
+            print(len(frame_aux))
+            
+            row=0
+            worksheet = workbook.add_worksheet()
+
+            for x in range(len(self.segment1)):
+                worksheet.write(row,1,self.segment1[x])
+                worksheet.write(row,0,frame_aux[x])
+                row+=1
+
+        workbook.close()
+
         return self.segment1
             
 if __name__ == "__main__":
     graphic = Graphics()
-    graphic.load_file("datos/brutos1.xlsx","Center of Mass",-1)
+    graphic.load_file("datos/brutos1.xlsx","Center of Mass",170000)
     #graphic.umbralize(2.0)
     #graphic.cubic_spline_smooth()
     #graphic.low_filter()
-    
+    #graphic.show()
     print(graphic.segment())
-    graphic.salvog_filter()
+    #graphic.salvog_filter()
     graphic.show()
