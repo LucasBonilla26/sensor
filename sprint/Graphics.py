@@ -27,7 +27,7 @@ class Graphics():
 
         self.frame = []
         #r'L:\.shortcut-targets-by-id\1Hs9L2qhd3LpjsVWp9cF_HjklAV_TVHBE\02_INVESTIGACIONES\Futbol\Territorio Gaming-Sta Teresa\04_Registros\Base\Sara.xlsx'
-        self.excel_file = r'L:\.shortcut-targets-by-id\1Hs9L2qhd3LpjsVWp9cF_HjklAV_TVHBE\02_INVESTIGACIONES\Futbol\Territorio Gaming-Sta Teresa\04_Registros\Base\Sara.xlsx'
+        self.excel_file = r'L:\.shortcut-targets-by-id\1Hs9L2qhd3LpjsVWp9cF_HjklAV_TVHBE\02_INVESTIGACIONES\Futbol\Territorio Gaming-Sta Teresa\04_Registros\Base\Loba.xlsx'
 
         
     def load_file(self, file_path, sheet_name, n_values=-1):
@@ -91,8 +91,8 @@ class Graphics():
         n = 15
         workbook = xlsxwriter.Workbook(self.excel_file)
         umbral = 0.31
-        #máximos [2733,14822,37474,43953,51529,55242,64208,69019,81255,85009,105422,135371,140114,144357,147569]
-        max = [12479,27288,48830,52003,54013,59022,62181,85891,86633,92485,92617,110480,114988,140829]
+        #máximos [2733,14822,37474,43953,51529,55242,64208,69019,81255,85009,105422,135371,140114,144357,147569][12479,27288,48830,52003,54013,59022,62181,85891,86633,92485,92617,110480,114988,140829]
+        max = [2733,14822,37474,43953,51529,55242,64208,69019,81255,85009,105422,135371,140114,144357,147569]
         
         for x in max:
             aux = []
@@ -129,10 +129,9 @@ class Graphics():
             for x in range(len(self.segment1)):
                 worksheet.write(row,2,self.segment1[x])
                 worksheet.write(row,0,frame_aux[x])
-                seconds = dt.timedelta(seconds=frame_aux[x]/240/24/60/60*10000)
+                seconds = dt.timedelta(seconds=frame_aux[x]/240/24/60/60*100000)
                 frame_time = (dt.datetime.combine(dt.date(1,1,1),self.start_time) + seconds).time()
                 print(frame_time)
-                print(frame_time.strftime("%H:%M:%S"))
                 worksheet.write(row,1,frame_time.strftime("%H:%M:%S.%f"))
                 row+=1
 
@@ -142,9 +141,9 @@ class Graphics():
             
 if __name__ == "__main__":
     graphic = Graphics()
-    #graphic.load_file("datos/brutos1.xlsx","Center of Mass") No poner nada para coger la gráfica entera
+    #graphic.load_file(r"C:\Users\BioEr\Desktop\FutbolBase\Sara_SportExtremadura.xlsx","Center of Mass") No poner nada para coger la gráfica entera
     #El último parámetro espécifica hasta que frame se quiere cargar de los datos, si se quiere cargar la gráfica entera quitar el valor
-    graphic.load_file(r"C:\Users\BioEr\Desktop\FutbolBase\Sara_SportExtremadura.xlsx","Center of Mass",150000) 
+    graphic.load_file(r"datos/brutos1.xlsx","Center of Mass",170000) 
     #graphic.umbralize(2.0)
     #graphic.cubic_spline_smooth()
     #graphic.low_filter()
