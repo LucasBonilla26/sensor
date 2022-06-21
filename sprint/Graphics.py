@@ -16,20 +16,23 @@ class Graphics():
         self.y_est_6 = []
         self.plot_graphic = []
         self.low_filter_data = []
-        self.segment1 = []
-        self.segment2 = []
-        self.segment3 = []
-        self.segment4 = []
-        self.segment5 = []
-        self.segment6 = []
         self.first_sheet = "General Information"
         self.start_time = 0
-
         self.frame = []
-        #r'L:\.shortcut-targets-by-id\1Hs9L2qhd3LpjsVWp9cF_HjklAV_TVHBE\02_INVESTIGACIONES\Futbol\Territorio Gaming-Sta Teresa\04_Registros\Base\Sara.xlsx'
-        self.excel_file = r'L:\.shortcut-targets-by-id\1Hs9L2qhd3LpjsVWp9cF_HjklAV_TVHBE\02_INVESTIGACIONES\Futbol\Territorio Gaming-Sta Teresa\04_Registros\Base\Loba.xlsx'
-
         
+        ########################################################## DATOS MODIFICABLES ##############################################################################
+        #Path donde se crea el excel con los datos segmentados
+        #Ejemplo de ruta -> r'L:\.shortcut-targets-by-id\1Hs9L2qhd3LpjsVWp9cF_HjklAV_TVHBE\02_INVESTIGACIONES\Futbol\Territorio Gaming-Sta Teresa\04_Registros\Base\Sujeto1_EmmaRipalda\Comparación tecnologías\GestosEmma.xlsx'
+        self.excel_file = r"C:\Users\BioEr\Desktop\futbol\Emma.xlsx"
+        #Path al excel con los datos a segmentar
+        self.load_filename = r"C:\Users\BioEr\Desktop\futbol\Emma_SportExtremadura.xlsx"
+        #Máximos de la gráfica
+        #Ejemplo de máximos -> [2733,14822,37474,43953,51529,55242,64208,69019,81255,85009,105422,135371,140114,144357,147569] EMMA [10214,23654,41955,52604,57964,61194,84129,88865,108930,113703,132883,157709,161259,165429,170570]
+        self.max =  [250,1500,3000,4200,5400,6700]
+        #Valor en X hasta cual se desea cargar los datos
+        #NO PONER COMILLAS
+        self.limit = -1
+  
     def load_file(self, file_path, sheet_name, n_values=-1):
         print("Reading file...")
         
@@ -49,6 +52,10 @@ class Graphics():
         print("Calculating speed...")
         self.data = [np.sqrt(x**2 + y**2) for x,y in list(zip(x_value, y_value))]
         # return self.data
+
+    def load_file2(self,file_path,sheet_name):
+        file = pd.read_excel(file_path, sheet_name) #Excel
+        return file
 
     def take_start_time(self,file_path):
         generalsheet = pd.read_excel(file_path, self.first_sheet)
@@ -88,13 +95,10 @@ class Graphics():
         self.low_filter_data = signal.filtfilt(b,a, self.data)
         
     def segment(self):
-        n = 15
         workbook = xlsxwriter.Workbook(self.excel_file)
         umbral = 0.31
-        #máximos [2733,14822,37474,43953,51529,55242,64208,69019,81255,85009,105422,135371,140114,144357,147569][12479,27288,48830,52003,54013,59022,62181,85891,86633,92485,92617,110480,114988,140829]
-        max = [2733,14822,37474,43953,51529,55242,64208,69019,81255,85009,105422,135371,140114,144357,147569]
-        
-        for x in max:
+                
+        for x in self.max:
             aux = []
             frame_aux = []
             i = x
@@ -138,17 +142,70 @@ class Graphics():
         workbook.close()
 
         return self.segment1
+
+    def segment_manu(self,column):
+        workbook = xlsxwriter.Workbook(r"C:\Users\BioEr\Desktop\GraficasManu\Gráfica5.xlsx")
+        umbral = 0.0
+        frame = np.arange(0,len(column),1)
+        worksheet = workbook.add_worksheet()
+                
+        for x in self.max:
+            aux = []
+            frame_aux = []
+            i = x
+            while i > 0:
+                if column[i] > umbral:
+                    aux.append(column[i])
+                    frame_aux = np.append(frame_aux,frame[i])
+                else:
+                    break
+                i-=1
+
+            values = np.flip(aux)
+            frame_aux = np.flip(frame_aux)
+
+            i = x
+            i+=1 
+            while i < len(column):
+                if column[i] > umbral:
+                    values = np.append(values,column[i])
+                    frame_aux = np.append(frame_aux,frame[i])
+                else:
+                    break
+                i+=1
+        
+            # print(len(self.segment1))
+            # print(len(frame_aux))
+            
+            row=0
+            #worksheet = workbook.add_worksheet()
+            index = self.max.index(x)
+            for x in range(len(values)):
+                worksheet.write(row,index,values[x])
+                #worksheet.write(row,0,frame_aux[x])
+                # seconds = dt.timedelta(seconds=frame_aux[x]/240/24/60/60*100000)
+                # frame_time = (dt.datetime.combine(dt.date(1,1,1),self.start_time) + seconds).time()
+                # print(frame_time)
+                # worksheet.write(row,1,frame_time.strftime("%H:%M:%S.%f"))
+                row+=1
+
+        workbook.close()
+
+        return values
             
 if __name__ == "__main__":
     graphic = Graphics()
     #graphic.load_file(r"C:\Users\BioEr\Desktop\FutbolBase\Sara_SportExtremadura.xlsx","Center of Mass") No poner nada para coger la gráfica entera
-    #El último parámetro espécifica hasta que frame se quiere cargar de los datos, si se quiere cargar la gráfica entera quitar el valor
-    graphic.load_file(r"datos/brutos1.xlsx","Center of Mass",170000) 
-    #graphic.umbralize(2.0)
-    #graphic.cubic_spline_smooth()
-    #graphic.low_filter()
-    #graphic.show()
+    graphic.load_file(graphic.load_filename,"Center of Mass", graphic.limit) 
     graphic.segment()
+    
+    #Graficas manuel
+    # data = graphic.load_file2(r"C:\Users\BioEr\Desktop\sensor\sprint\CURVE_Dch.xlsx",r"Hoja1")
+    # data.columns = ['G1','G2','G3','G4','G5']
+    # graphic_data = data['G1']
+    # print(graphic_data)
+    # graphic.segment_manu(data['G1'])
+    
     print("He terminado!")
     #graphic.salvog_filter()
     #graphic.show()
